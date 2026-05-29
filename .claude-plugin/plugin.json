@@ -1,0 +1,16 @@
+{
+  "name": "sw6-skills",
+  "description": "Shopware 6 (6.6.x/6.7.x) development conventions, patterns, and production gotchas, plus DDEV local-dev setup — packaged as Claude Code skills.",
+  "author": {
+    "name": "vanWittlaer"
+  },
+  "homepage": "https://github.com/vanWittlaer/sw6-skills",
+  "repository": "https://github.com/vanWittlaer/sw6-skills",
+  "keywords": [
+    "shopware",
+    "shopware6",
+    "ddev",
+    "php",
+    "symfony"
+  ]
+}

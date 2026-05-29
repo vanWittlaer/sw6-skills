@@ -1,0 +1,13 @@
+{
+  "name": "sw6-skills",
+  "owner": {
+    "name": "vanWittlaer"
+  },
+  "plugins": [
+    {
+      "name": "sw6-skills",
+      "source": "./",
+      "description": "Shopware 6 development skills (shopware6, ddev)"
+    }
+  ]
+}
