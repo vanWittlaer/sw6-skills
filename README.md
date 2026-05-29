@@ -21,7 +21,32 @@ skills/
 
 ## Usage
 
-### Claude Code (CLI / IDE)
+### Install as a Claude Code plugin (recommended)
+
+This repo ships as a Claude Code plugin marketplace (`.claude-plugin/marketplace.json`),
+so you can install it straight from GitHub:
+
+```
+/plugin marketplace add vanWittlaer/sw6-skills
+/plugin install sw6-skills@sw6-skills
+```
+
+The first command registers this repo as a marketplace; the second installs the
+`sw6-skills` plugin from it. After install, the `shopware6` and `ddev` skills are
+available to Claude Code automatically — no `CLAUDE.md` wiring needed.
+
+To update later:
+```
+/plugin marketplace update sw6-skills
+```
+
+To remove:
+```
+/plugin uninstall sw6-skills@sw6-skills
+/plugin marketplace remove sw6-skills
+```
+
+### Claude Code (manual, without the plugin)
 Place skill files where Claude Code can read them directly, or reference them
 in your project's `CLAUDE.md`:
 ```
