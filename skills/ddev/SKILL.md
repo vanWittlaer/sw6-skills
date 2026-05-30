@@ -270,7 +270,39 @@ Requires `php-amqp` extension — see §2 `webimage_extra_packages`.
 
 ---
 
-## 8. Performance Tweaks
+## 8. Claude Code in DDEV
+
+Run Claude Code inside the web container so it shares the project's PHP, Node,
+Composer, and database — same environment as `ddev exec`, no host-side toolchain
+drift.
+
+```bash
+ddev add-on get FreelyGive/ddev-claude-code
+ddev restart
+ddev claude          # launch Claude Code inside the container
+```
+
+First run is an interactive setup (login, model, defaults). State persists in
+`.ddev/.claude.json` and `.ddev/.claude/` — survives `ddev restart` and
+`ddev delete` because it lives next to the project, not in the container.
+
+Inside the session, plain `bin/console`, `composer`, `npm`, `mysql` work
+directly — no `ddev exec` prefix needed.
+
+Commit / ignore:
+- `.ddev/.claude.json` and `.ddev/.claude/` — **don't commit**, they contain
+  auth + personal settings. Add to `.gitignore`.
+- The add-on's own container files (e.g. `.ddev/web-build/*` it writes) — do
+  commit, so teammates get the same `ddev claude` command.
+
+Bundled `ddev glab` (GitLab CLI) with state in `.ddev/.glab-cli/` — same
+ignore rule.
+
+Add-on listing: https://addons.ddev.com/addons/FreelyGive/ddev-claude-code
+
+---
+
+## 9. Performance Tweaks
 
 Reference: https://notebook.vanwittlaer.de/ddev-for-shopware/performance-tweaks
 
@@ -304,7 +336,7 @@ SHOPWARE_CACHE_ID=myshop-local
 
 ---
 
-## 9. What to Commit
+## 10. What to Commit
 
 | File | Commit? |
 |------|---------|
@@ -316,10 +348,12 @@ SHOPWARE_CACHE_ID=myshop-local
 | `.ddev/php/shopware.ini` | Yes |
 | `.ddev/mysql/my.cnf` | Yes |
 | `.ddev/config.local.yaml` | **No** — personal overrides |
+| `.ddev/.claude.json`, `.ddev/.claude/` | **No** — Claude Code auth + settings |
+| `.ddev/.glab-cli/` | **No** — GitLab CLI auth |
 
 ---
 
-## 10. Quick Reference
+## 11. Quick Reference
 
 ```bash
 ddev start / stop / restart / poweroff
