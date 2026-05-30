@@ -343,7 +343,102 @@ Add-on listing: https://addons.ddev.com/addons/codingsasi/ddev-playwright
 
 ---
 
-## 10. Performance Tweaks
+## 10. Browser Preview & Screenshots (Playwright MCP)
+
+Lets Claude Code drive a Chromium instance via `@playwright/mcp` to navigate
+the storefront, resize the viewport, and take screenshots. This is for
+visual preview & frontend feedback loops — for running the Playwright test
+suite, see §9.
+
+### Prerequisites
+
+- Claude Code must run **inside** the DDEV web container (§8) — the MCP
+  server and the browser need to be co-located with the app. Inside the
+  container, tooling runs directly: drop the `ddev exec` prefix.
+- The `codingsasi/ddev-playwright` add-on installed (§9) — it provides
+  Node, browser system libs, the shared `/opt/playwright-browsers/` volume,
+  and sets `PLAYWRIGHT_BROWSERS_PATH` in the container env. Install
+  **from the host**, because `ddev restart` rebuilds the web container and
+  kills any in-container Claude session. Relaunch Claude after the restart.
+
+### `.mcp.json` (project root)
+
+```json
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "-y", "@playwright/mcp@latest",
+        "--headless", "--browser=chromium",
+        "--no-sandbox", "--ignore-https-errors", "--isolated"
+      ],
+      "env": { "PLAYWRIGHT_BROWSERS_PATH": "/opt/playwright-browsers" }
+    }
+  }
+}
+```
+
+The `PLAYWRIGHT_BROWSERS_PATH` line is only correct **with** the add-on —
+that path is the add-on's shared volume mount. Without the add-on, drop the
+`env` block or the browser won't be found.
+
+Flag rationale:
+- `--no-sandbox` — Chromium's userns sandbox doesn't work inside the web
+  container; without it the browser fails to start.
+- `--headless` — no display available in the container.
+- `--ignore-https-errors` — `*.ddev.site` certs aren't trusted by default.
+- `--isolated` — fresh profile per session, no state leak between runs.
+
+### Version-match gotcha (the one real trap)
+
+`@playwright/mcp@latest` pulls whichever Chromium build its bundled
+Playwright wants, which often differs from what the add-on pre-installed
+(observed: add-on shipped `chromium-1223`; `@playwright/mcp` 0.0.75 wanted
+`chrome-for-testing` v1224). First launch errors:
+
+```
+Browser "chrome-for-testing" is not installed
+```
+
+One-time fix — installs the missing build into the shared volume, persists
+across restarts and across projects:
+
+```bash
+PLAYWRIGHT_BROWSERS_PATH=/opt/playwright-browsers \
+  npx @playwright/mcp@latest install-browser chrome-for-testing
+```
+
+Why install at runtime: the persistent volume mount **shadows** anything
+baked into `/opt/playwright-browsers` at image-build time. Whatever the
+add-on pre-installs only matters if the volume is empty; once it exists,
+new browser builds must be added via this command (or
+`ddev reinstall-browsers` for the add-on side).
+
+### Usage notes
+
+- Navigate to the **real ddev URL** (e.g. `https://<project>.ddev.site/`),
+  never `https://localhost` — Shopware's Host header matching returns
+  HTTP 400 for unknown hosts.
+- `browser_resize` covers viewports — desktop and 375px mobile both
+  verified. Pair with `browser_take_screenshot`, then view the PNG.
+- With `APP_ENV=dev`, the Symfony profiler bar sits at the page bottom in
+  every screenshot. A cookie-consent banner overlays first load — accept
+  or dismiss it before measuring critical chrome.
+- Frontend dev loop: edit Twig / SCSS / JS →
+  `shopware-cli project storefront-build` (or `bin/console theme:compile`
+  + `bin/console cache:clear:all` as needed) → screenshot → iterate.
+
+### Future: bundling via a plugin
+
+A Shopware plugin can declare its MCP server in `plugin.json` under
+`mcpServers` for one-click distribution. The add-on prerequisite still
+applies in the target project, so this skill's recipe stays the right
+primary documentation unit.
+
+---
+
+## 11. Performance Tweaks
 
 Reference: https://notebook.vanwittlaer.de/ddev-for-shopware/performance-tweaks
 
@@ -377,7 +472,7 @@ SHOPWARE_CACHE_ID=myshop-local
 
 ---
 
-## 11. What to Commit
+## 12. What to Commit
 
 | File | Commit? |
 |------|---------|
@@ -394,7 +489,7 @@ SHOPWARE_CACHE_ID=myshop-local
 
 ---
 
-## 12. Quick Reference
+## 13. Quick Reference
 
 ```bash
 ddev start / stop / restart / poweroff
