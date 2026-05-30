@@ -302,7 +302,48 @@ Add-on listing: https://addons.ddev.com/addons/FreelyGive/ddev-claude-code
 
 ---
 
-## 9. Performance Tweaks
+## 9. Playwright (E2E Tests)
+
+For browser-based E2E tests against the storefront or admin.
+
+```bash
+ddev add-on get codingsasi/ddev-playwright
+ddev restart
+ddev install-playwright           # installs CLI + browser binaries
+```
+
+Day-to-day:
+
+```bash
+ddev playwright test                              # run the suite
+ddev playwright codegen https://myshop.ddev.site  # record a flow
+ddev playwright show-report --host=0.0.0.0        # open the HTML report
+ddev reinstall-browsers                           # after Playwright version bump
+```
+
+Defaults: test dir `tests/playwright/`, scaffolds `playwright.config.ts` plus
+`global-setup.ts` / `global-teardown.ts`.
+
+Notes:
+- Depends on **ddev-nvm** and sets `.nvmrc` to Node 22 (requires Node 20+).
+  Reconcile with §2's `nodejs_version: "22"` — the add-on may override it; if
+  Node is wrong inside the container after install, check `.nvmrc` first.
+- Browser binaries (~1.2 GB) live in a shared Docker volume
+  `ddev-playwright-browsers` mounted at `/opt/playwright-browsers/<version>/`,
+  so multiple projects share one download. The volume survives removing the
+  add-on from a single project.
+- `--ui` mode is best run from the host (outside the container) at the project
+  root — in-container UI mode is awkward over the DDEV port forwarding.
+
+Commit `tests/playwright/` and `playwright.config.ts` like any other test
+code. The add-on's `.ddev/` changes go in `web_environment` (already
+committed via `.ddev/config.yaml`).
+
+Add-on listing: https://addons.ddev.com/addons/codingsasi/ddev-playwright
+
+---
+
+## 10. Performance Tweaks
 
 Reference: https://notebook.vanwittlaer.de/ddev-for-shopware/performance-tweaks
 
@@ -336,7 +377,7 @@ SHOPWARE_CACHE_ID=myshop-local
 
 ---
 
-## 10. What to Commit
+## 11. What to Commit
 
 | File | Commit? |
 |------|---------|
@@ -353,7 +394,7 @@ SHOPWARE_CACHE_ID=myshop-local
 
 ---
 
-## 11. Quick Reference
+## 12. Quick Reference
 
 ```bash
 ddev start / stop / restart / poweroff
